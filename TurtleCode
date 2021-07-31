@@ -1,0 +1,242 @@
+function moveForward()
+	turtle.forward()
+end
+
+function refuel()
+	if turtle.getFuelLevel() <= 50 then
+		turtle.digUp()
+		turtle.digDown()
+		turtle.down()
+		turtle.select(2)
+		turtle.placeUp()
+		turtle.suckUp(64)
+		turtle.refuel(64)
+		turtle.digUp()
+		turtle.transferTo(2, 1)
+		turtle.up()
+		print("Turtle has refueled")
+	else
+		print("Turtle has enough fuel")
+	end
+end
+
+function inventoryCheck()
+	local itemSlotsFull = 0
+
+	print("Inventory check in progress...")
+
+	for i = 3, 16 do
+		print(turtle.getItemSpace(i))
+		if turtle.getItemSpace(i) < 64 then
+			itemSlotsFull = itemSlotsFull + 1
+		else
+			print("Stack has space")
+		end
+	end
+	if itemSlotsFull >= 13 then
+		turtle.digUp()
+		turtle.digDown()
+		turtle.down()
+		turtle.select(1)
+		turtle.placeUp()
+		for i = 3, 16 do
+			turtle.select(i)
+			turtle.dropUp()
+			os.sleep(1)
+		end
+		os.sleep(3)
+		turtle.digUp()
+		turtle.transferTo(1, 1)
+		turtle.up()
+		print("Turtle has deposited items")
+	else
+		print("Still room in inventory, no need to deposit.")
+	end
+
+end
+
+
+function inspect()
+	safe = false
+	safeup = false
+	safedown = false
+	local success, ore = turtle.inspect();
+	local success, oreUp = turtle.inspect();
+	local success, oreDown = turtle.inspect();
+		if ore.name == "forge:ores/stella_arcanum" then
+			print("Too Dangerous to dig forward")
+			safe = false
+			
+		else 
+			print("It's safe to dig forward")
+			safe = true
+			
+		end
+
+		if oreUp.name == "forge:ores/stella_arcanum" then
+			print("Too Dangerous to dig up")
+			safeup = false
+			
+		else 
+			print("It's safe to dig up")
+			safeup = true
+			
+		end
+
+		if oreDown.name == "forge:ores/stella_arcanum" then
+			print("Too Dangerous to dig down")
+			safe = false
+			
+		else 
+			print("It's safe to dig down")
+			safedown = true
+			
+		end
+		stepsTaken = stepsTaken+1
+		if stepsTaken >= 49 then
+			refuel()
+		else
+			print("Current fuel level ", turtle.getFuelLevel())
+		end
+
+end
+
+function dig()
+	inspect()
+	if safe == true then
+		while turtle.detect() == true do
+			turtle.dig()
+		end
+		print("Turtle dug forward")
+	else 
+		print("Can't dig forward")
+	end
+	inventoryCheck()
+
+end
+
+function digUp()
+	inspect()
+	if safeup == true then
+		turtle.digUp()
+		print("Dug up")
+	else 
+		print("Can't move up")
+	end
+end
+
+function digDown()
+	inspect()
+	if safedown == true then
+		turtle.digDown()
+		print("Dug Down")
+	else 
+		print("Can't move down")
+	end
+	inventoryCheck()
+
+end
+
+
+function quarry()
+	print("Welcome! How big of a quarry do you want? ")
+
+	print("width")
+	local width = tonumber(io.read())
+	print("height")
+	local height = tonumber(io.read())
+	print("length")
+	local length = tonumber(io.read())
+
+	for y = 1, height do		
+		for x = 1, width do
+			for z = 2, length do
+				dig()
+				moveForward()
+			end
+			if x < width then					
+				if x % 2 == 0 then
+					turtle.turnLeft()
+					dig()
+					moveForward()
+					turtle.turnLeft()
+
+				else
+					turtle.turnRight()
+					dig()
+					moveForward()
+					turtle.turnRight()
+				end
+			else
+				if x % 2 == 0 then
+					turtle.turnLeft()
+					turtle.turnLeft()
+
+				else
+					turtle.turnRight()
+					turtle.turnRight()
+				end
+			end
+		end
+		digDown()
+		turtle.down()
+	end
+end
+
+function tunnel()
+	print("How long do you want the tunnel?")
+	print("length")
+	local length = tonumber(io.read())
+	for x = 1, length do
+		if x % 2 == 0 then
+			turtle.turnLeft()
+			dig()
+			digUp()
+			moveForward()
+			digUp()
+			turtle.turnRight()
+			dig()
+			moveForward()
+		else
+			turtle.turnRight()
+			dig()
+			digUp()
+			moveForward()
+			digUp()
+			turtle.turnLeft()
+			dig()
+			moveForward()
+		end
+	end
+end
+
+
+
+function start()
+	stepsTaken = 1
+	if turtle.getFuelLevel() <= 50 then
+		refuel()
+	else
+		print("Starting Turtle...")
+	end
+	print("Starting Turtle...")
+
+	os.sleep(3)
+
+	print("What function do you want to use? Press 1 tunnel or 2 for quarry")
+	local pick = tonumber(io.read())
+
+	if pick == 1 then
+		tunnel()
+	elseif pick == 2 then
+		quarry()
+	else
+		print("Invalid number, try again")
+	end
+
+end
+
+
+
+start()
+
